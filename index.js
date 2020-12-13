@@ -3,22 +3,12 @@
 */
 
 // dependencies
-// https://nodejs.org/api/http.html
 const http = require("http");
-// https://nodejs.org/api/url.html
-//const url = require("url");
 const { StringDecoder } = require("string_decoder");
 
 // the server should respond to all requests with a string
 const server = http.createServer((req, res) => {
   // get the URL and parse it
-  /*
-    url.parse (which the instructor is using) is DEPRECATED. See below link
-    https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
-    let parsedUrl = url.parse(req.url, true);
-    insted, we have to use the WHATWG URL API.
-  https://nodejs.org/api/url.html#url_new_url_input_base
-  */
   const parsedUrl = new URL(req.url, "http://localhost:3000");
 
   // get the path
@@ -45,10 +35,38 @@ const server = http.createServer((req, res) => {
   req.on("end", function () {
     buffer += decoder.end();
 
-    // send the response
-    res.end("hello world\n");
+    // choose the handler this request should go to. If one is not found, use the notFound handler
+    const chosenHandler =
+      typeof router[trimmedPath] !== "undefined"
+        ? router[trimmedPath]
+        : handlers.notFound;
 
-    console.log(buffer);
+    // construct the data obj to send to the handler
+    const data = {
+      trimmedPath,
+      queryStringObject,
+      method,
+      headers,
+      payload: buffer,
+    };
+
+    // route the request to the handlers specified in the router
+    chosenHandler(data, function (statusCode, payload) {
+      // use the status code called back by the handler, or defaul to 200
+      statusCode = typeof statusCode == "number" ? statusCode : 200;
+
+      // use the payload called back by the handler, or default to an empty obj
+      payload = typeof payload == "object" ? payload : {};
+
+      // convert the payload to a string
+      const payloadString = JSON.stringify(payload);
+
+      // return the response
+      res.writeHead(statusCode);
+      res.end(payloadString);
+
+      console.log("returning this response: ", statusCode, payloadString);
+    });
   });
 });
 
@@ -56,3 +74,22 @@ const server = http.createServer((req, res) => {
 server.listen(3000, () => {
   console.log("Server listening on port 3000");
 });
+
+// define the handlers
+const handlers = {};
+
+// sample handler
+handlers.sample = function (data, cb) {
+  // callback a http status code, and a payload object
+  cb(406, { name: "sample handler" });
+};
+
+// not found handlers
+handlers.notFound = function (data, cb) {
+  cb(404);
+};
+
+// define a request router
+const router = {
+  sample: handlers.sample,
+};
