@@ -7,6 +7,7 @@
 const http = require("http");
 // https://nodejs.org/api/url.html
 //const url = require("url");
+const { StringDecoder } = require("string_decoder");
 
 // the server should respond to all requests with a string
 const server = http.createServer((req, res) => {
@@ -34,10 +35,21 @@ const server = http.createServer((req, res) => {
   // get the headers as an object
   const headers = req.headers;
 
-  // send the response
-  res.end("hello world\n");
+  // get the payload, if any
+  const decoder = new StringDecoder("utf8");
+  let buffer = "";
+  // nodejs deals with streams of data, this is, it receives the data in a stream of data (not all at once), so, as this data is streaming in, the request object emits the "data" event, which we are listening for, and sends it (to the callback we passed to the event) a bunch of undecoded data, which we know should be on the utf8 format, so we decode it using our decoder, and append the result to the buffer we created
+  req.on("data", function (chunk) {
+    buffer += decoder.write(chunk);
+  });
+  req.on("end", function () {
+    buffer += decoder.end();
 
-  console.log(headers);
+    // send the response
+    res.end("hello world\n");
+
+    console.log(buffer);
+  });
 });
 
 // start the server, and have it listen on port 3000
