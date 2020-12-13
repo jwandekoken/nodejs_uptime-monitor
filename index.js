@@ -19,23 +19,25 @@ const server = http.createServer((req, res) => {
   https://nodejs.org/api/url.html#url_new_url_input_base
   */
   const parsedUrl = new URL(req.url, "http://localhost:3000");
-  console.log("parsedUrl: ", parsedUrl);
 
   // get the path
   const path = parsedUrl.pathname;
   // removing the "/" at the beginning or end of the path
   const trimmedPath = path.replace(/^\/+|\/+$/g, "");
 
+  // get the query string as an object
+  const queryStringObject = Object.fromEntries(parsedUrl.searchParams);
+
   // get the http method
   const method = req.method.toLowerCase();
+
+  // get the headers as an object
+  const headers = req.headers;
 
   // send the response
   res.end("hello world\n");
 
-  // log the request path
-  console.log(
-    `request received on path: ${trimmedPath}, with method: ${method}`
-  );
+  console.log(headers);
 });
 
 // start the server, and have it listen on port 3000
