@@ -11,11 +11,13 @@ const http = require("http");
 // the server should respond to all requests with a string
 const server = http.createServer((req, res) => {
   // get the URL and parse it
-  // url.parse is DEPRECATED. See below link
-  // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
-  //let parsedUrl = url.parse(req.url, true);
-  // insted, we have to use the WHATWG URL API.
-  // https://nodejs.org/api/url.html#url_new_url_input_base
+  /*
+    url.parse (which the instructor is using) is DEPRECATED. See below link
+    https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
+    let parsedUrl = url.parse(req.url, true);
+    insted, we have to use the WHATWG URL API.
+  https://nodejs.org/api/url.html#url_new_url_input_base
+  */
   const parsedUrl = new URL(req.url, "http://localhost:3000");
   console.log("parsedUrl: ", parsedUrl);
 
@@ -23,13 +25,17 @@ const server = http.createServer((req, res) => {
   const path = parsedUrl.pathname;
   // removing the "/" at the beginning or end of the path
   const trimmedPath = path.replace(/^\/+|\/+$/g, "");
-  console.log(trimmedPath);
+
+  // get the http method
+  const method = req.method.toLowerCase();
 
   // send the response
   res.end("hello world\n");
 
   // log the request path
-  console.log("Request received on path: " + trimmedPath);
+  console.log(
+    `request received on path: ${trimmedPath}, with method: ${method}`
+  );
 });
 
 // start the server, and have it listen on port 3000
