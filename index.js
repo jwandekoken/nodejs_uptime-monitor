@@ -5,6 +5,7 @@
 // dependencies
 const http = require("http");
 const { StringDecoder } = require("string_decoder");
+const config = require("./config");
 
 // the server should respond to all requests with a string
 const server = http.createServer((req, res) => {
@@ -62,6 +63,9 @@ const server = http.createServer((req, res) => {
       const payloadString = JSON.stringify(payload);
 
       // return the response
+      // https://nodejs.org/api/http.html#http_response_setheader_name_value
+      res.setHeader("Content-Type", "application/json");
+      // https://nodejs.org/api/http.html#http_response_writehead_statuscode_statusmessage_headers
       res.writeHead(statusCode);
       res.end(payloadString);
 
@@ -70,9 +74,11 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// start the server, and have it listen on port 3000
-server.listen(3000, () => {
-  console.log("Server listening on port 3000");
+// start the server
+server.listen(config.port, () => {
+  console.log(
+    `Server listening on port ${config.port}, running on ${config.envName} environment`
+  );
 });
 
 // define the handlers
