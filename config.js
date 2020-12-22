@@ -9,6 +9,7 @@ environments.staging = {
   httpPort: 3000,
   httpsPort: 3001,
   envName: "staging",
+  domainWithoutPort: "localhost",
 };
 
 // production environment
@@ -16,6 +17,7 @@ environments.production = {
   httpPort: 5000,
   httpsPort: 5001,
   envName: "production",
+  domainWithoutPort: "localhost",
 };
 
 // determine which environment was passed as a command-line argument

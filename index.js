@@ -24,7 +24,7 @@ const httpsServerOptions = {
   cert: fs.readFileSync("./https/cert.pem"),
 };
 const httpsServer = https.createServer(httpsServerOptions, (req, res) => {
-  unifiedServer(req, res);
+  unifiedServer(req, res, true);
 });
 // start the HTTPS server
 httpsServer.listen(config.httpsPort, () => {
@@ -32,9 +32,13 @@ httpsServer.listen(config.httpsPort, () => {
 });
 
 // all the server logic for both the http and https server
-const unifiedServer = function (req, res) {
+const unifiedServer = function (req, res, https = false) {
+  const protocol = !https ? `http` : `https`;
+  const port = !https ? config.httpPort : config.httpsPort;
+  const domain = `${protocol}://${config.domainWithoutPort}:${port}`;
+
   // get the URL and parse it
-  const parsedUrl = new URL(req.url, "http://localhost:3000");
+  const parsedUrl = new URL(req.url, domain);
 
   // get the path
   const path = parsedUrl.pathname;
@@ -101,10 +105,10 @@ const unifiedServer = function (req, res) {
 // define the handlers
 const handlers = {};
 
-// sample handler
-handlers.sample = function (data, cb) {
-  // callback a http status code, and a payload object
-  cb(406, { name: "sample handler" });
+// ping handler
+handlers.ping = function (data, cb) {
+  // callback a http status code
+  cb(200);
 };
 
 // not found handlers
@@ -114,5 +118,5 @@ handlers.notFound = function (data, cb) {
 
 // define a request router
 const router = {
-  sample: handlers.sample,
+  ping: handlers.ping,
 };
