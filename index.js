@@ -7,7 +7,15 @@ const http = require("http");
 const https = require("https");
 const { StringDecoder } = require("string_decoder");
 const fs = require("fs");
+
 const config = require("./config");
+const _data = require("./lib/data");
+
+// TESTING
+// @TODO detele this
+_data.delete("test", "newFile", function (err) {
+  console.log("this was the error", err);
+});
 
 // instantiate the HTTP server
 const httpServer = http.createServer((req, res) => {
