@@ -9,13 +9,7 @@ const { StringDecoder } = require("string_decoder");
 const fs = require("fs");
 
 const config = require("./config");
-const _data = require("./lib/data");
-
-// TESTING
-// @TODO detele this
-_data.delete("test", "newFile", function (err) {
-  console.log("this was the error", err);
-});
+const handlers = require("./lib/handlers");
 
 // instantiate the HTTP server
 const httpServer = http.createServer((req, res) => {
@@ -110,21 +104,8 @@ const unifiedServer = function (req, res, https = false) {
   });
 };
 
-// define the handlers
-const handlers = {};
-
-// ping handler
-handlers.ping = function (data, cb) {
-  // callback a http status code
-  cb(200);
-};
-
-// not found handlers
-handlers.notFound = function (data, cb) {
-  cb(404);
-};
-
 // define a request router
 const router = {
   ping: handlers.ping,
+  users: handlers.users,
 };
