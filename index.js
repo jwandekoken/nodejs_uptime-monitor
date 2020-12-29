@@ -79,7 +79,7 @@ const unifiedServer = function (req, res, https = false) {
       queryStringObject,
       method,
       headers,
-      payload: helpers.parseJsonToObject(buffer),
+      payload: buffer.length > 0 ? helpers.parseJsonToObject(buffer) : buffer,
     };
 
     // route the request to the handlers specified in the router
