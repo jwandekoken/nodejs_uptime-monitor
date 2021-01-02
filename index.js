@@ -109,4 +109,5 @@ const unifiedServer = function (req, res, https = false) {
 const router = {
   ping: handlers.ping,
   users: handlers.users,
+  tokens: handlers.tokens,
 };
