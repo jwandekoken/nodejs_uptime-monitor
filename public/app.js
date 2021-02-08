@@ -107,7 +107,10 @@ app.bindLogoutButton = function () {
 };
 
 // Log the user out then redirect them
-app.logUserOut = function () {
+app.logUserOut = function (redirectUser) {
+  // Set redirectUser to default to true
+  redirectUser = typeof redirectUser == "boolean" ? redirectUser : true;
+
   // Get the current token id
   var tokenId =
     typeof app.config.sessionToken.id == "string"
@@ -129,7 +132,9 @@ app.logUserOut = function () {
       app.setSessionToken(false);
 
       // Send the user to the logged out page
-      window.location = "/session/deleted";
+      if (redirectUser) {
+        window.location = "/session/deleted";
+      }
     }
   );
 };
@@ -161,24 +166,55 @@ app.bindForms = function () {
         var elements = this.elements;
         for (var i = 0; i < elements.length; i++) {
           if (elements[i].type !== "submit") {
+            // Determine class of element and set value accordingly
+            var classOfElement =
+              typeof elements[i].classList.value == "string" &&
+              elements[i].classList.value.length > 0
+                ? elements[i].classList.value
+                : "";
             var valueOfElement =
-              elements[i].type == "checkbox"
+              elements[i].type == "checkbox" &&
+              classOfElement.indexOf("multiselect") == -1
                 ? elements[i].checked
-                : elements[i].value;
-            if (elements[i].name == "_method") {
+                : classOfElement.indexOf("intval") == -1
+                ? elements[i].value
+                : parseInt(elements[i].value);
+            var elementIsChecked = elements[i].checked;
+            // Override the method of the form if the input's name is _method
+            var nameOfElement = elements[i].name;
+            if (nameOfElement == "_method") {
               method = valueOfElement;
             } else {
-              payload[elements[i].name] = valueOfElement;
+              // Create an payload field named "method" if the elements name is actually httpmethod
+              if (nameOfElement == "httpmethod") {
+                nameOfElement = "method";
+              }
+              // If the element has the class "multiselect" add its value(s) as array elements
+              if (classOfElement.indexOf("multiselect") > -1) {
+                if (elementIsChecked) {
+                  payload[nameOfElement] =
+                    typeof payload[nameOfElement] == "object" &&
+                    payload[nameOfElement] instanceof Array
+                      ? payload[nameOfElement]
+                      : [];
+                  payload[nameOfElement].push(valueOfElement);
+                }
+              } else {
+                payload[nameOfElement] = valueOfElement;
+              }
             }
           }
         }
+
+        // If the method is DELETE, the payload should be a queryStringObject instead
+        var queryStringObject = method == "DELETE" ? payload : {};
 
         // Call the API
         app.client.request(
           undefined,
           path,
           method,
-          undefined,
+          queryStringObject,
           payload,
           function (statusCode, responsePayload) {
             // Display an error on the form if needed
@@ -260,6 +296,17 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
   if (formsWithSuccessMessages.indexOf(formId) > -1) {
     document.querySelector("#" + formId + " .formSuccess").style.display =
       "block";
+  }
+
+  // If the user just deleted their account, redirect them to the account-delete page
+  if (formId == "accountEdit3") {
+    app.logUserOut(false);
+    window.location = "/account/deleted";
+  }
+
+  // If the user just created a new check successfully, redirect back to the dashboard
+  if (formId == "checksCreate") {
+    window.location = "/checks/all";
   }
 };
 
